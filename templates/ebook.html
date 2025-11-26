@@ -1,19 +1,69 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>{{ subject }} <small>— Ebook Mode</small></h2>
-{% for section, questions in sections.items() %}
-  <h3>{{ section }}</h3>
-  {% for q in questions %}
-    <div class="question-card">
-      <p class="question"><strong>{{ q }}</strong></p>
-      <div class="answer-text">
-        {% if answers.get(q) %}
-          <p style="white-space: pre-wrap;">{{ answers.get(q) }}</p>
-        {% else %}
-          <p style="color: #999; font-style: italic;">No answer saved yet.</p>
-        {% endif %}
-      </div>
-    </div>
-  {% endfor %}
-{% endfor %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ subject }} - Ebook Mode</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Turn.js 4 (works offline too!) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body { margin:0; background:#f4f0e8; overflow:hidden; }
+    #book { width:900px; height:600px; margin:40px auto; }
+    .page { background:white; padding:40px; box-shadow:inset 0 0 20px rgba(0,0,0,0.1); line-height:1.7; font-size:16px; }
+    .page h3 { color:#8b4513; margin-top:0; border-bottom:2px solid #deb887; padding-bottom:8px; }
+    .page strong { color:#333; }
+    .answer-text { background:#fdfd96; padding:15px; border-radius:8px; margin:20px 0; border-left:5px solid #deb887; }
+    @media (max-width:920px) {
+      #book { width:100%; height:80vh; margin:0; }
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center; color:#8b4513; margin:20px;">{{ subject }} — Book Mode</h2>
+  
+  <div id="book">
+    {% for section, questions in sections.items() %}
+      {% for q in questions %}
+        <!-- Each question + answer becomes one page -->
+        <div class="page">
+          <h3>{{ section }}</h3>
+          <p><strong>{{ q }}</strong></p>
+          <div class="answer-text">
+            {% if answers.get(q) %}
+              <p style="white-space: pre-wrap;">{{ answers.get(q) }}</p>
+            {% else %}
+              <p style="color:#999; font-style:italic;">No answer yet</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% endfor %}
+    
+    <!-- Optional: Add blank pages at end for even count -->
+    <div class="page"><h2 style="text-align:center; color:#8b4513;">End of Book</h2></div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      $("#book").turn({
+        width: 900,
+        height: 600,
+        autoCenter: true,
+        gradients: true,
+        acceleration: true,
+        display: 'double',    // two pages side-by-side like real book
+        elevation: 50,
+        when: {
+          turning: function(e, page) {
+            console.log("Turning to page " + page);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
 {% endblock %}
