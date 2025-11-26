@@ -1,0 +1,47 @@
+body { font-family: Georgia, serif; background: #fefcf9; color: #333; margin: 0; padding: 2rem; line-height: 1.6; }
+header h1 a { text-decoration: none; color: #2c3e50; }
+.subject-list li { margin: 1rem 0; font-size: 1.3rem; }
+.subject-list a { color: #3498db; text-decoration: none; }
+.subject-list a:hover { text-decoration: underline; }
+
+.question-card {
+  background: white;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+.question { margin-bottom: 0.8rem; font-size: 1.1rem; }
+
+textarea {
+  width: 100%;
+  height: 160px;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  resize: vertical;
+}
+textarea:focus { outline: none; border-color: #3498db; box-shadow: 0 0 8px rgba(52,152,219,0.3); }
+
+.answer-text {
+  background: #f8f9fa;
+  border-left: 4px solid #3498db;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 0 8px 8px 0;
+}
+
+.nav-btn {
+  background: #3498db; color: white; padding: 0.6rem 1.2rem;
+  margin: 0 0.5rem; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 0.95rem;
+}
+.nav-btn:hover { background: #2980b9; }
+
+#save-status {
+  position: fixed; bottom: 20px; right: 20px;
+  background: #2c3e50; color: white; padding: 12px 20px;
+  border-radius: 8px; font-size: 14px; display: none; z-index: 1000;
+}

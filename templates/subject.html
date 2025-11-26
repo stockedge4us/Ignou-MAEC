@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ subject }}</h2>
+{% for section, questions in sections.items() %}
+  <h3>{{ section }}</h3>
+  {% for q in questions %}
+    <div class="question-card">
+      <p class="question"><strong>{{ q }}</strong></p>
+      <textarea 
+        placeholder="Write your answer here... (auto-saved)" 
+        oninput="saveAnswer('{{ q|replace('\'', '\\\'')|replace('\"', '\\\"') }}', this.value)"
+      >{{ answers.get(q, '') }}</textarea>
+    </div>
+  {% endfor %}
+{% endfor %}
+{% endblock %}

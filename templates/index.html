@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Select a Subject</h2>
+<ul class="subject-list">
+  {% for subject in subjects %}
+    <li><a href="{{ url_for('subject', subject_name=subject) }}">{{ subject }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}
