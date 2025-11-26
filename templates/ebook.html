@@ -9,13 +9,12 @@
     body { 
       background: linear-gradient(135deg, #f5f0e8 0%, #fdfbf7 100%);
       font-family: 'Georgia', 'Bookman Old Style', serif;
-      color: #2c1810;
-      line-height: 1.8;
+      color: #2c1810; line-height: 1.8;
     }
     .header {
       background: linear-gradient(135deg, #8b4513 0%, #6b3410 100%);
       color: white; padding: 2rem; text-align: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2); position:relative;
     }
     .header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
     .header p { font-size: 1.1rem; opacity: 0.9; font-style: italic; }
@@ -26,6 +25,7 @@
       text-decoration: none; display: inline-block; font-weight: 600; transition: all 0.3s;
     }
     .nav-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+
     .container { max-width: 900px; margin: 0 auto; padding: 3rem 2rem; }
     .section {
       background: white; margin-bottom: 3rem; border-radius: 12px;
@@ -36,26 +36,39 @@
       color: #2c1810; padding: 1.5rem 2rem; font-size: 1.5rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: 1px; border-bottom: 3px solid #8b6f47;
     }
-    .question-block { padding: 2rem; border-bottom: 1px solid #e8d7c3; }
+    .question-block { padding: 2rem; border-bottom: 1px solid #e8d7c3; position:relative; }
     .question-block:last-child { border-bottom: none; }
-    .question { font-size: 1.2rem; font-weight: 600; color: #6b3410; margin-bottom: 1.5rem; line-height: 1.6; }
+    .question { font-size: 1.2rem; font-weight: 600; color: #6b3410; margin-bottom: 1rem; line-height: 1.6; }
+    
     .answer {
       background: linear-gradient(135deg, #fffdf8 0%, #faf7f0 100%);
       padding: 25px; border-left: 5px solid #d4af37; border-radius: 8px;
       margin: 20px 0; box-shadow: 0 2px 8px rgba(139,69,19,0.08); white-space: pre-wrap;
+      min-height: 60px;
     }
-    .no-answer { color: #999; font-style: italic; padding: 20px 0; }
-    .refresh-btn {
-      position:fixed; top: 20px; right: 20px; background: #8b4513; color: white;
-      padding: 12px 20px; border: none; border-radius: 50px; cursor: pointer;
-      font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000;
+    .no-answer { color: #999; font-style: italic; }
+
+    .save-btn {
+      position: absolute; top: 15px; right: 15px;
+      background: #8b4513; color: white; border: none;
+      padding: 10px 20px; border-radius: 50px; cursor: pointer;
+      font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(139,69,19,0.4);
+      transition: all 0.3s; z-index: 10;
     }
+    .save-btn:hover { background: #a0522d; transform: translateY(-2px); }
+    .save-btn.saving { background: #d4af37; }
+    .save-btn.saved { background: #2e8b57; }
+
+    textarea.answer-input {
+      width: 100%; min-height: 140px; padding: 15px; border: 2px solid #d4af37;
+      border-radius: 8px; font-family: Georgia,serif; font-size: 1rem; resize: vertical;
+      margin-top: 10px;
+    }
+    .edit-mode-active .answer { display: none; }
+    .edit-mode-active textarea.answer-input { display: block; }
+
     @media (max-width: 768px) {
-      .container { padding: 2rem 1rem; }
-      .section-header { font-size: 1.2rem; padding: 1rem 1.5rem; }
-      .question-block { padding: 1.5rem; }
-      .question { font-size: 1.1rem; }
-      .answer { font-size: 1rem; padding: 1.2rem; }
+      .save-btn { top: 10px; right: 10px; padding: 8px 16px; font-size: 13px; }
     }
   </style>
 </head>
@@ -70,43 +83,85 @@
     </div>
   </div>
 
-  <button class="refresh-btn" onclick="location.reload()">Refresh Answers</button>
-
-  <div class="container" id="content">
+  <div class="container">
     {% for section, questions in sections.items() %}
-    <div class="section">
-      <div class="section-header">{{ section }}</div>
-      {% for q in questions %}
-        <div class="question-block">
-          <div class="question">{{ q }}</div>
-          <div class="answer" id="ans-{{ loop.index }}">
-            {% if answers.get(q) and answers.get(q)|trim != '' %}
-              {{ answers.get(q) }}
-            {% else %}
-              <span style="color:#999; font-style:italic;">No answer yet</span>
-            {% endif %}
+      <div class="section">
+        <div class="section-header">{{ section }}</div>
+        
+        {% for q in questions %}
+          <div class="question-block">
+            <button class="save-btn" onclick="toggleEdit(this, '{{ q|replace('\'', '\\\'')|replace('\"', '\\\"')|replace('\n', '\\n') }}')">
+              Edit & Save
+            </button>
+            
+            <div class="question">{{ q }}</div>
+            
+            <div class="answer">
+              {% if answers.get(q) and answers.get(q)|trim != '' %}
+                {{ answers.get(q) }}
+              {% else %}
+                <span class="no-answer">Click "Edit & Save" to add answer</span>
+              {% endif %}
+            </div>
+
+            <textarea class="answer-input">{{ answers.get(q, '') }}</textarea>
           </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% endfor %}
+        {% endfor %}
+      </div>
+    {% endfor %}
   </div>
 
-  <!-- AUTO-REFRESH EVERY 8 SECONDS SO NEW ANSWERS APPEAR INSTANTLY -->
   <script>
-    // Auto-refresh the page every 8 seconds when in Ebook mode
-    setTimeout(() => {
-      location.reload();
-    }, 8000);
+    function toggleEdit(btn, questionText) {
+      const block = btn.parentElement;
+      const isEditing = block.classList.contains('edit-mode-active');
+      
+      if (isEditing) {
+        // === SAVING ===
+        const textarea = block.querySelector('textarea');
+        const answerDiv = block.querySelector('.answer');
+        const newAnswer = textarea.value.trim();
 
-    // Optional: Show a small countdown
-    let seconds = 8;
-    const btn = document.querySelector('.refresh-btn');
-    const timer = setInterval(() => {
-      seconds--;
-      btn.textContent = `Auto-refresh in ${seconds}s`;
-      if (seconds <= 0) clearInterval(timer);
-    }, 1000);
+        btn.textContent = "Saving...";
+        btn.classList.add('saving');
+
+        fetch('/api/save-answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: questionText, answer: newAnswer })
+        })
+        .then(() => {
+          // Instantly update the visible answer
+          if (newAnswer === '') {
+            answerDiv.innerHTML = '<span class="no-answer">Click "Edit & Save" to add answer</span>';
+          } else {
+            answerDiv.textContent = newAnswer;
+          }
+
+          btn.textContent = "Saved!";
+          btn.classList.remove('saving');
+          btn.classList.add('saved');
+
+          // Exit edit mode
+          block.classList.remove('edit-mode-active');
+
+          setTimeout(() => {
+            btn.textContent = "Edit & Save";
+            btn.classList.remove('saved');
+          }, 2000);
+        })
+        .catch(() => {
+          btn.textContent = "Error";
+          setTimeout(() => btn.textContent = "Edit & Save", 2000);
+        });
+
+      } else {
+        // === ENTER EDIT MODE ===
+        block.classList.add('edit-mode-active');
+        btn.textContent = "Save Answer";
+        block.querySelector('textarea').focus();
+      }
+    }
   </script>
 
 </body>
