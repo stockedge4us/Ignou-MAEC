@@ -181,40 +181,21 @@
     </div>
   </div>
 
-  <!-- Generate pages in pairs (left + right) -->
-  {% set page_num = [0] %}
+  <!-- Generate ALL pages -->
   {% for section, questions in sections.items() %}
     {% for q in questions %}
-      {% if page_num[0] % 2 == 0 %}
-        <!-- Left page -->
-        <div class="page left">
-          <h3>{{ section }}</h3>
-          <p><strong>{{ q }}</strong></p>
-          <div class="answer-text">
-            {% if answers.get(q) %}
-              <div style="white-space:pre-wrap;">{{ answers.get(q) }}</div>
-            {% else %}
-              <em style="color:#999;">No answer yet</em>
-            {% endif %}
-          </div>
-          <div class="page-number">Page {{ page_num[0] + 1 }}</div>
+      <div class="page {% if loop.index0 % 2 == 0 %}left{% else %}right{% endif %}">
+        <h3>{{ section }}</h3>
+        <p><strong>{{ q }}</strong></p>
+        <div class="answer-text">
+          {% if answers.get(q) %}
+            <div style="white-space:pre-wrap;">{{ answers.get(q) }}</div>
+          {% else %}
+            <em style="color:#999;">No answer yet</em>
+          {% endif %}
         </div>
-      {% else %}
-        <!-- Right page -->
-        <div class="page right">
-          <h3>{{ section }}</h3>
-          <p><strong>{{ q }}</strong></p>
-          <div class="answer-text">
-            {% if answers.get(q) %}
-              <div style="white-space:pre-wrap;">{{ answers.get(q) }}</div>
-            {% else %}
-              <em style="color:#999;">No answer yet</em>
-            {% endif %}
-          </div>
-          <div class="page-number">Page {{ page_num[0] + 1 }}</div>
-        </div>
-      {% endif %}
-      {% if page_num.append(page_num.pop() + 1) %}{% endif %}
+        <div class="page-number">Page {{ loop.index }}</div>
+      </div>
     {% endfor %}
   {% endfor %}
 
