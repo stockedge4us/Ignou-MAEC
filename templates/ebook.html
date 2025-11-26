@@ -5,24 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ subject }} - Book Mode</title>
   <style>
-    body { margin:0; background:linear-gradient(#3b2a1a, #1a0f08); height:100vh; overflow:hidden; display:flex; justify-content:center; align-items:center; perspective:2000px; }
-    .book { position:relative; width:900px; height:600px; transform-style:preserve-3d; transform:rotateY(-15deg); }
-    .page { position:absolute; width:450px; height:600px; background:white; box-shadow:0 10px 30px rgba(0,0,0,0.6); backface-visibility:hidden; padding:40px; box-sizing:border-box; overflow-y:auto; font-family:Georgia,serif; line-height:1.8; }
-    .left  { left:0; transform-origin:right; }
-    .right { left:450px; transform-origin:left; }
-    .page h3 { color:#8b4513; border-bottom:2px solid #deb887; padding-bottom:8px; }
-    .answer-text { background:#fffef5; padding:18px; border-left:6px solid #deb887; margin:20px 0; border-radius:8px; }
-    .flipping { transition:transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1); transform-style:preserve-3d; }
-    .back { transform:rotateY(180deg); background:#f8f6f0; }
-    .page-number { text-align:center; color:#999; margin-top:40px; font-style:italic; }
+    body { margin:0; background:#1a0f08; height:100vh; overflow:hidden; display:flex; justify-content:center; align-items:center; perspective:2500px; }
+    .book { position:relative; width:960px; height:600px; transform-style:preserve-3d; transform:rotateY(-20deg); }
+    .page { position:absolute; width:480px; height:600px; background:white; box-shadow:0 15px 40px rgba(0,0,0,0.7); backface-visibility:hidden; padding:40px; box-sizing:border-box; overflow-y:auto; font-family:Georgia,serif; line-height:1.8; font-size:16px; }
+    .page.left  { left:0; transform-origin:right; }
+    .page.right { left:480px; transform-origin:left; }
+    .page h3 { color:#8b4513; border-bottom:2px solid #deb887; padding-bottom:10px; margin-top:0; }
+    .answer-text { background:#fffef5; padding:20px; border-left:6px solid #deb887; border-radius:8px; margin:20px 0; }
+    .page-number { text-align:center; color:#aaa; margin-top:50px; font-style:italic; }
 
-    button { position:fixed; top:20px; z-index:100; padding:12px 24px; background:#8b4513; color:white; border:none; border-radius:8px; cursor:pointer; font-size:16px; }
+    button { position:fixed; top:20px; z-index:100; padding:12px 25px; background:#8b4513; color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5); }
     #prevBtn { left:20px; }
     #nextBtn { right:20px; }
 
-    @media (max-width:920px) {
-      .book { width:100%; height:100vh; transform:none; }
-      .page { width:100%; left:0 !important; height:100%; padding:20px; }
+    @media (max-width:1000px) {
+      .book { transform:none; width:100%; height:100vh; }
+      .page { width:100% !important; left:0 !important; height:100%; padding:20px; font-size:15px; }
       .right { display:none; }
     }
   </style>
@@ -33,74 +31,75 @@
 <button id="nextBtn">Next</button>
 
 <div class="book" id="book">
-  {% set pages = [] %}
+  <!-- Generate pages in pairs (left + right) -->
+  {% set total = namespace(value=0) %}
   {% for section, questions in sections.items() %}
     {% for q in questions %}
-      {% do pages.append({
-        'section': section,
-        'question': q,
-        'answer': answers.get(q, '')
-      }) %}
+      {% if total.value % 2 == 0 %}
+        <!-- Left page -->
+        <div class="page left">
+          <h3>{{ section }}</h3>
+          <p><strong>{{ q }}</strong></p>
+          <div class="answer-text">
+            {% if answers.get(q) %}
+              <div style="white-space:pre-wrap;">{{ answers.get(q) }}</div>
+            {% else %}
+              <em style="color:#999;">No answer yet</em>
+            {% endif %}
+          </div>
+          <div class="page-number">Page {{ total.value + 1 }}</div>
+        </div>
+      {% else %}
+        <!-- Right page -->
+        <div class="page right">
+          <h3>{{ section }}</h3>
+          <p><strong>{{ q }}</strong></p>
+          <div class="answer-text">
+            {% if answers.get(q) %}
+              <div style="white-space:pre-wrap;">{{ answers.get(q) }}</div>
+            {% else %}
+              <em style="color:#999;">No answer yet</em>
+            {% endif %}
+          </div>
+          <div class="page-number">Page {{ total.value + 1 }}</div>
+        </div>
+      {% endif %}
+      {% set _ = total.__setattr__('value', total.value + 1) %}
     {% endfor %}
   {% endfor %}
 
-  {% for i in range(0, pages|length, 2) %}
-    <!-- Left page -->
-    <div class="page left" data-page="{{ i+1 }}">
-      {% if i < pages|length %}
-        <h3>{{ pages[i].section }}</h3>
-        <p><strong>{{ pages[i].question }}</strong></p>
-        <div class="answer-text">
-          {% if pages[i].answer %}
-            <div style="white-space:pre-wrap;">{{ pages[i].answer }}</div>
-          {% else %}
-            <em style="color:#999;">No answer yet</em>
-          {% endif %}
-        </div>
-        <div class="page-number">Page {{ i+1 }}</div>
-      {% endif %}
-    </div>
-
-    <!-- Right page -->
-    <div class="page right" data-page="{{ i+2 }}">
-      {% if i+1 < pages|length %}
-        <h3>{{ pages[i+1].section }}</h3>
-        <p><strong>{{ pages[i+1].question }}</strong></p>
-        <div class="answer-text">
-          {% if pages[i+1].answer %}
-            <div style="white-space:pre-wrap;">{{ pages[i+1].answer }}</div>
-          {% else %}
-            <em style="color:#999;">No answer yet</em>
-          {% endif %}
-        </div>
-        <div class="page-number">Page {{ i+2 }}</div>
-      {% endif %}
-    </div>
-  {% endfor %}
-
-  <!-- Final page -->
-  <div class="page left">
-    <h2 style="text-align:center; color:#8b4513; margin-top:200px;">End of Book</h2>
-    <p style="text-align:center;">You're doing amazing!</p>
+  <!-- Final end page -->
+  <div class="page left" style="text-align:center; padding-top:180px;">
+    <h2 style="color:#8b4513;">End of Book</h2>
+    <p style="font-size:18px;">Keep learning — you're doing amazing!</p>
   </div>
 </div>
 
 <script>
-let current = 0;
-const pages = document.querySelectorAll('.page');
+  let currentPage = 0;
+  const book = document.getElementById('book');
+  const pages = document.querySelectorAll('.page');
 
-document.getElementById('nextBtn').onclick = () => {
-  if (current < pages.length - 2) {
-    current += 2;
-    document.querySelector('.book').style.transform = `rotateY(-${current * 0.5}deg)`;
-  }
-};
-document.getElementById('prevBtn').onclick = () => {
-  if (current > 0) {
-    current -= 2;
-    document.querySelector('.book').style.transform = `rotateY(-${current * 0.5}deg)`;
-  }
-};
+  document.getElementById('nextBtn').onclick = () => {
+    if (currentPage < pages.length - 2) {
+      currentPage += 2;
+      book.style.transform = `rotateY(-${currentPage * 0.8}deg)`;
+    }
+  };
+
+  document.getElementById('prevBtn').onclick = () => {
+    if (currentPage > 0) {
+      currentPage -= 2;
+      book.style.transform = `rotateY(-${currentPage * 0.8}deg)`;
+    }
+  };
+
+  // Keyboard support
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') document.getElementById('nextBtn').click();
+    if (e.key === 'ArrowLeft') document.getElementById('prevBtn').click();
+  });
 </script>
+
 </body>
 </html>
