@@ -1,69 +1,76 @@
-{% extends "base.html" %}
-{% block content %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>{{ subject }} - Ebook Mode</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Turn.js 4 (works offline too!) -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ subject }} — Book Mode</title>
+
+  <!-- jQuery + Turn.js -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
   <style>
-    body { margin:0; background:#f4f0e8; overflow:hidden; }
-    #book { width:900px; height:600px; margin:40px auto; }
-    .page { background:white; padding:40px; box-shadow:inset 0 0 20px rgba(0,0,0,0.1); line-height:1.7; font-size:16px; }
-    .page h3 { color:#8b4513; margin-top:0; border-bottom:2px solid #deb887; padding-bottom:8px; }
+    body { margin:0; background:#2b1d0e; overflow:hidden; height:100vh; display:flex; flex-direction:column; }
+    #header { background:#8b4513; color:white; text-align:center; padding:15px; font-size:1.5rem; }
+    #book-container { flex:1; background:#ddd; padding:20px 0; }
+    #book { width:900px; height:600px; margin:0 auto; background:white; box-shadow:0 0 30px rgba(0,0,0,0.8); }
+    .page { padding:40px; background:white; box-sizing:border-box; line-height:1.8; font-family:Georgia,serif; font-size:16px; }
+    .page h3 { color:#8b4513; border-bottom:2px solid #deb887; padding-bottom:8px; margin-top:0; }
     .page strong { color:#333; }
-    .answer-text { background:#fdfd96; padding:15px; border-radius:8px; margin:20px 0; border-left:5px solid #deb887; }
+    .answer-text { background:#fffacd; padding:18px; border-radius:10px; margin:20px 0; border-left:6px solid #deb887; }
+    .page-number { text-align:center; color:#999; margin-top:40px; font-size:14px; }
+
     @media (max-width:920px) {
-      #book { width:100%; height:80vh; margin:0; }
+      #book { width:100%; height:80vh; }
+      .page { padding:20px; font-size:15px; }
     }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center; color:#8b4513; margin:20px;">{{ subject }} — Book Mode</h2>
-  
+
+<div id="header">{{ subject }} — Book Mode</div>
+
+<div id="book-container">
   <div id="book">
     {% for section, questions in sections.items() %}
       {% for q in questions %}
-        <!-- Each question + answer becomes one page -->
         <div class="page">
           <h3>{{ section }}</h3>
           <p><strong>{{ q }}</strong></p>
           <div class="answer-text">
             {% if answers.get(q) %}
-              <p style="white-space: pre-wrap;">{{ answers.get(q) }}</p>
+              <div style="white-space:pre-wrap;">{{ answers.get(q) }}</div>
             {% else %}
-              <p style="color:#999; font-style:italic;">No answer yet</p>
+              <em style="color:#a77;">No answer yet</em>
             {% endif %}
           </div>
+          <div class="page-number">— {{ loop.index }} —</div>
         </div>
       {% endfor %}
     {% endfor %}
-    
-    <!-- Optional: Add blank pages at end for even count -->
-    <div class="page"><h2 style="text-align:center; color:#8b4513;">End of Book</h2></div>
-  </div>
 
-  <script>
-    $(document).ready(function() {
-      $("#book").turn({
-        width: 900,
-        height: 600,
-        autoCenter: true,
-        gradients: true,
-        acceleration: true,
-        display: 'double',    // two pages side-by-side like real book
-        elevation: 50,
-        when: {
-          turning: function(e, page) {
-            console.log("Turning to page " + page);
-          }
-        }
-      });
+    <!-- Final page -->
+    <div class="page" style="text-align:center; color:#8b4513;">
+      <h2>End of Book</h2>
+      <p>Keep studying — you're doing great!</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $("#book").turn({
+      width: 900,
+      height: 600,
+      autoCenter: true,
+      gradients: true,
+      acceleration: true,
+      display: 'double',
+      elevation: 50,
+      duration: 800
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>
-{% endblock %}
