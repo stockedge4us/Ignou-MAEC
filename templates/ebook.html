@@ -3,74 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ subject }} — Book Mode</title>
-
-  <!-- jQuery + Turn.js -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
-
+  <title>{{ subject }} - Book Mode</title>
   <style>
-    body { margin:0; background:#2b1d0e; overflow:hidden; height:100vh; display:flex; flex-direction:column; }
-    #header { background:#8b4513; color:white; text-align:center; padding:15px; font-size:1.5rem; }
-    #book-container { flex:1; background:#ddd; padding:20px 0; }
-    #book { width:900px; height:600px; margin:0 auto; background:white; box-shadow:0 0 30px rgba(0,0,0,0.8); }
-    .page { padding:40px; background:white; box-sizing:border-box; line-height:1.8; font-family:Georgia,serif; font-size:16px; }
-    .page h3 { color:#8b4513; border-bottom:2px solid #deb887; padding-bottom:8px; margin-top:0; }
-    .page strong { color:#333; }
-    .answer-text { background:#fffacd; padding:18px; border-radius:10px; margin:20px 0; border-left:6px solid #deb887; }
-    .page-number { text-align:center; color:#999; margin-top:40px; font-size:14px; }
+    body { margin:0; background:linear-gradient(#3b2a1a, #1a0f08); height:100vh; overflow:hidden; display:flex; justify-content:center; align-items:center; perspective:2000px; }
+    .book { position:relative; width:900px; height:600px; transform-style:preserve-3d; transform:rotateY(-15deg); }
+    .page { position:absolute; width:450px; height:600px; background:white; box-shadow:0 10px 30px rgba(0,0,0,0.6); backface-visibility:hidden; padding:40px; box-sizing:border-box; overflow-y:auto; font-family:Georgia,serif; line-height:1.8; }
+    .left  { left:0; transform-origin:right; }
+    .right { left:450px; transform-origin:left; }
+    .page h3 { color:#8b4513; border-bottom:2px solid #deb887; padding-bottom:8px; }
+    .answer-text { background:#fffef5; padding:18px; border-left:6px solid #deb887; margin:20px 0; border-radius:8px; }
+    .flipping { transition:transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1); transform-style:preserve-3d; }
+    .back { transform:rotateY(180deg); background:#f8f6f0; }
+    .page-number { text-align:center; color:#999; margin-top:40px; font-style:italic; }
+
+    button { position:fixed; top:20px; z-index:100; padding:12px 24px; background:#8b4513; color:white; border:none; border-radius:8px; cursor:pointer; font-size:16px; }
+    #prevBtn { left:20px; }
+    #nextBtn { right:20px; }
 
     @media (max-width:920px) {
-      #book { width:100%; height:80vh; }
-      .page { padding:20px; font-size:15px; }
+      .book { width:100%; height:100vh; transform:none; }
+      .page { width:100%; left:0 !important; height:100%; padding:20px; }
+      .right { display:none; }
     }
   </style>
 </head>
 <body>
 
-<div id="header">{{ subject }} — Book Mode</div>
+<button id="prevBtn">Previous</button>
+<button id="nextBtn">Next</button>
 
-<div id="book-container">
-  <div id="book">
-    {% for section, questions in sections.items() %}
-      {% for q in questions %}
-        <div class="page">
-          <h3>{{ section }}</h3>
-          <p><strong>{{ q }}</strong></p>
-          <div class="answer-text">
-            {% if answers.get(q) %}
-              <div style="white-space:pre-wrap;">{{ answers.get(q) }}</div>
-            {% else %}
-              <em style="color:#a77;">No answer yet</em>
-            {% endif %}
-          </div>
-          <div class="page-number">— {{ loop.index }} —</div>
-        </div>
-      {% endfor %}
+<div class="book" id="book">
+  {% set pages = [] %}
+  {% for section, questions in sections.items() %}
+    {% for q in questions %}
+      {% do pages.append({
+        'section': section,
+        'question': q,
+        'answer': answers.get(q, '')
+      }) %}
     {% endfor %}
+  {% endfor %}
 
-    <!-- Final page -->
-    <div class="page" style="text-align:center; color:#8b4513;">
-      <h2>End of Book</h2>
-      <p>Keep studying — you're doing great!</p>
+  {% for i in range(0, pages|length, 2) %}
+    <!-- Left page -->
+    <div class="page left" data-page="{{ i+1 }}">
+      {% if i < pages|length %}
+        <h3>{{ pages[i].section }}</h3>
+        <p><strong>{{ pages[i].question }}</strong></p>
+        <div class="answer-text">
+          {% if pages[i].answer %}
+            <div style="white-space:pre-wrap;">{{ pages[i].answer }}</div>
+          {% else %}
+            <em style="color:#999;">No answer yet</em>
+          {% endif %}
+        </div>
+        <div class="page-number">Page {{ i+1 }}</div>
+      {% endif %}
     </div>
+
+    <!-- Right page -->
+    <div class="page right" data-page="{{ i+2 }}">
+      {% if i+1 < pages|length %}
+        <h3>{{ pages[i+1].section }}</h3>
+        <p><strong>{{ pages[i+1].question }}</strong></p>
+        <div class="answer-text">
+          {% if pages[i+1].answer %}
+            <div style="white-space:pre-wrap;">{{ pages[i+1].answer }}</div>
+          {% else %}
+            <em style="color:#999;">No answer yet</em>
+          {% endif %}
+        </div>
+        <div class="page-number">Page {{ i+2 }}</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <!-- Final page -->
+  <div class="page left">
+    <h2 style="text-align:center; color:#8b4513; margin-top:200px;">End of Book</h2>
+    <p style="text-align:center;">You're doing amazing!</p>
   </div>
 </div>
 
 <script>
-  $(document).ready(function() {
-    $("#book").turn({
-      width: 900,
-      height: 600,
-      autoCenter: true,
-      gradients: true,
-      acceleration: true,
-      display: 'double',
-      elevation: 50,
-      duration: 800
-    });
-  });
-</script>
+let current = 0;
+const pages = document.querySelectorAll('.page');
 
+document.getElementById('nextBtn').onclick = () => {
+  if (current < pages.length - 2) {
+    current += 2;
+    document.querySelector('.book').style.transform = `rotateY(-${current * 0.5}deg)`;
+  }
+};
+document.getElementById('prevBtn').onclick = () => {
+  if (current > 0) {
+    current -= 2;
+    document.querySelector('.book').style.transform = `rotateY(-${current * 0.5}deg)`;
+  }
+};
+</script>
 </body>
 </html>
